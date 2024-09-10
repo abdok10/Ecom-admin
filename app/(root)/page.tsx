@@ -1,3 +1,10 @@
-export default function Test() {
-  return <div>test</div>;
+import { UserButton } from "@clerk/nextjs";
+
+export default function SetupPage() {
+  return (
+    <div>
+      <p>Dashboard</p>
+      <UserButton />
+    </div>
+  );
 }
