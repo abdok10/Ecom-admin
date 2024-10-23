@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 
 import { Modal } from "@components/ui/modal";
 import { useStoreModal } from "@hooks/use-store-modal";
-import { Button } from "@components/ui/button"
+import { Button } from "@components/ui/button";
 import {
   Form,
   FormControl,
@@ -15,8 +15,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@components/ui/form"
-import { Input } from "@components/ui/input"
+} from "@components/ui/form";
+import { Input } from "@components/ui/input";
 
 const formSchema = z.object({
   name: z.string().min(2, {
