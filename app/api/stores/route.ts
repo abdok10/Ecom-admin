@@ -1,5 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
-import db from "@lib/db";
+import db from "@/lib/db";
 import { NextResponse } from "next/server";
 
 export const POST = async (req: Request) => {

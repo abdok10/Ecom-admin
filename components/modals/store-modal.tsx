@@ -18,7 +18,6 @@ import {
   FormMessage,
 } from "@components/ui/form";
 import { Input } from "@components/ui/input";
-import { createStore } from "@actions/store";
 import toast from "react-hot-toast";
 import { useState } from "react";
 
@@ -42,9 +41,9 @@ export const StoreModal = () => {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       setLoading(true);
-      const response = await axios.post("/api/stores", values); // const data = await response;
+      const response = await axios.post("/api/stores", values);
 
-      toast.error("Store created");
+      window.location.assign(`/${response.data.id}`);
     } catch {
       toast.error("Something went wrong!");
     } finally {
