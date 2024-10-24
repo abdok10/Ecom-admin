@@ -3,6 +3,7 @@
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import axios from "axios";
 
 import SubmitBtn from "@components/SubmitBtn";
 import { Modal } from "@components/ui/modal";
@@ -19,6 +20,7 @@ import {
 import { Input } from "@components/ui/input";
 import { createStore } from "@actions/store";
 import toast from "react-hot-toast";
+import { useState } from "react";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -28,6 +30,7 @@ const formSchema = z.object({
 
 export const StoreModal = () => {
   const { isOpen, onClose } = useStoreModal();
+  const [loading, setLoading] = useState<boolean>(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -37,18 +40,16 @@ export const StoreModal = () => {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    await createStore(values)
-      .then((data) => {
-        // if (data?.error) toast.error(data.error);
-        if (data) toast.success("Store Created");
-        console.log("Store created", { data });
-      })
-      .catch((error) => {
-        console.error("Error creating store", { error });
-        toast.error("Something went wrong!");
-      });
-    form.reset();
-    onClose();
+    try {
+      setLoading(true);
+      const response = await axios.post("/api/stores", values); // const data = await response;
+
+      toast.error("Store created");
+    } catch {
+      toast.error("Something went wrong!");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -68,7 +69,11 @@ export const StoreModal = () => {
                 <FormItem>
                   <FormLabel>Username</FormLabel>
                   <FormControl>
-                    <Input placeholder="E-commerce" {...field} />
+                    <Input
+                      disabled={loading}
+                      placeholder="E-commerce"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -76,6 +81,7 @@ export const StoreModal = () => {
             />
             <div className="pt-5 flex justify-end items-center gap-2">
               <Button
+                disabled={loading}
                 variant="outline"
                 onClick={() => {
                   toast("Calcel clicked!");
