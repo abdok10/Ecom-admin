@@ -1,6 +1,5 @@
 "use client";
 
-import { useFormStatus } from "react-dom";
 import { LoaderCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -8,17 +7,17 @@ import { Button } from "@/components/ui/button";
 interface SubmitBtnProps {
   children: React.ReactNode;
   pendingLabel?: string;
+  loading?: boolean;
 }
 
-const SubmitBtn = ({ children, pendingLabel }: SubmitBtnProps) => {
-  const { pending } = useFormStatus();
+const SubmitBtn = ({ children, pendingLabel, loading }: SubmitBtnProps) => {
   return (
     <Button
       type="submit"
-      disabled={pending}
+      disabled={loading}
       className="disabled:cursor-not-allowed"
     >
-      {pending ? (
+      {loading ? (
         <span className="flex items-center justify-center gap-2 capitalize">
           <LoaderCircle className="animate-spin" />
           {pendingLabel}

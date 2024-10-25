@@ -4,6 +4,7 @@ import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 import SubmitBtn from "@components/SubmitBtn";
 import { Modal } from "@components/ui/modal";
@@ -28,6 +29,7 @@ const formSchema = z.object({
 });
 
 export const StoreModal = () => {
+  const router = useRouter();
   const { isOpen, onClose } = useStoreModal();
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -43,7 +45,10 @@ export const StoreModal = () => {
       setLoading(true);
       const response = await axios.post("/api/stores", values);
 
-      window.location.assign(`/${response.data.id}`);
+      // hard reload in case the modal is stuck open
+      // window.location.assign(`/${response.data.id}`);
+      router.push(`/${response.data.id}`);
+      onClose();
     } catch {
       toast.error("Something went wrong!");
     } finally {
@@ -82,14 +87,11 @@ export const StoreModal = () => {
               <Button
                 disabled={loading}
                 variant="outline"
-                onClick={() => {
-                  toast("Calcel clicked!");
-                  onClose();
-                }}
+                onClick={() => onClose()}
               >
                 Cancel
               </Button>
-              <SubmitBtn pendingLabel="creating...">Create</SubmitBtn>
+              <SubmitBtn pendingLabel="creating..." loading={loading}>Create</SubmitBtn>
             </div>
           </form>
         </Form>
