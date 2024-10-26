@@ -27,11 +27,6 @@ export const createStore = async (values: { name: string }) => {
   }
 };
 
-// types.ts
-// export interface FormattedError {
-//   message: string;
-//   code?: string;
-// }
 
 // lib/exceptions.ts
 class ApiError extends Error {
@@ -54,7 +49,6 @@ const UpdateStoreSchema = z.object({
 
 export async function updateStore(
   storeId: string,
-  prevState: { message?: string; error?: string } | undefined,
   formData: FormData
 ) {
   try {

@@ -51,7 +51,7 @@ const SettingsForm = ({ initialData }: SettingsFormProps) => {
       const formData = new FormData();
       formData.append("name", data.name);
 
-      const result = await updateStore(initialData.id, undefined, formData);
+      const result = await updateStore(initialData.id, formData);
 
       if (result.error) {
         toast.error(result.error);
