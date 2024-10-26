@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { Trash } from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "react-hot-toast";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -17,22 +18,27 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { updateStore } from "@actions/store";
 
 interface SettingsFormProps {
   initialData: {
+    id: string;
     name: string;
   };
 }
 
 const formSchema = z.object({
-  name: z.string().min(1),
+  name: z
+    .string()
+    .min(1, "Store name is required")
+    .max(50, "Store name cannot exceed 50 characters"),
 });
 
 type SettingsFormValues = z.infer<typeof formSchema>;
 
 const SettingsForm = ({ initialData }: SettingsFormProps) => {
-  const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState<boolean>(false);
+  const [isPending, startTransition] = useTransition();
 
   const form = useForm<SettingsFormValues>({
     resolver: zodResolver(formSchema),
@@ -40,7 +46,22 @@ const SettingsForm = ({ initialData }: SettingsFormProps) => {
   });
 
   const onSubmit = async (data: SettingsFormValues) => {
-    console.log(data);
+    startTransition(async () => {
+      // Create FormData instance
+      const formData = new FormData();
+      formData.append("name", data.name);
+
+      const result = await updateStore(initialData.id, undefined, formData);
+
+      if (result.error) {
+        toast.error(result.error);
+        return;
+      }
+
+      if (result.message) {
+        toast.success(result.message);
+      }
+    });
   };
 
   return (
@@ -52,7 +73,7 @@ const SettingsForm = ({ initialData }: SettingsFormProps) => {
         </div>
         <Button
           variant="destructive"
-          disabled={loading}
+          disabled={isPending}
           size="icon"
           onClick={() => setOpen(true)}
         >
@@ -72,7 +93,7 @@ const SettingsForm = ({ initialData }: SettingsFormProps) => {
                   <FormLabel>Store Name</FormLabel>
                   <FormControl>
                     <Input
-                      disabled={loading}
+                      disabled={isPending}
                       placeholder="Store Name"
                       {...field}
                     />
@@ -82,7 +103,7 @@ const SettingsForm = ({ initialData }: SettingsFormProps) => {
               )}
             />
           </div>
-          <Button type="submit" disabled={loading} className="ml-auto">
+          <Button type="submit" disabled={isPending} className="ml-auto">
             Save Changes
           </Button>
         </form>
