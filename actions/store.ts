@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 
 import db from "@lib/db";
 
+//TODO - make it better 
 export const createStore = async (values: { name: string }) => {
   try {
     const { userId } = await auth();
@@ -27,7 +28,6 @@ export const createStore = async (values: { name: string }) => {
   }
 };
 
-
 // lib/exceptions.ts
 class ApiError extends Error {
   constructor(
@@ -47,10 +47,7 @@ const UpdateStoreSchema = z.object({
     .max(50, "Store name cannot exceed 50 characters"),
 });
 
-export async function updateStore(
-  storeId: string,
-  formData: FormData
-) {
+export async function updateStore(storeId: string, formData: FormData) {
   try {
     const rawName = formData.get("name");
 
@@ -67,7 +64,6 @@ export async function updateStore(
 
     const { name } = validatedFields.data;
 
-    // Simulate DB check for duplicate name
     const { userId } = auth();
     if (!userId) return { error: "Unauthorized" };
 
@@ -92,7 +88,7 @@ export async function updateStore(
     revalidatePath(`/settings`);
 
     return {
-      message: "Store name updated successfully",
+      success: "Store name updated successfully",
     };
   } catch (error) {
     console.error("[STORE_UPDATE_ERROR]", error);
@@ -105,6 +101,39 @@ export async function updateStore(
 
     return {
       error: "Something went wrong while updating the store.",
+    };
+  }
+}
+
+export async function deleteStore(storeId: string) {
+  try {
+    const { userId } = auth();
+    if (!userId) return { error: "Unauthorized" };
+    
+    if (!storeId) return { error: "Store id is required" };
+
+    await db.store.delete({
+      where: {
+        id: storeId,
+        userId,
+      },
+    });
+
+    revalidatePath(`/${storeId}/settings`);
+    return {
+      success: "Store deleted successfully",
+    };
+  } catch (error) {
+    console.error("[STORE_DELETE_ERROR]", error);
+
+    if (error instanceof ApiError) {
+      return {
+        error: error.message,
+      };
+    }
+
+    return {
+      error: "Something went wrong while deleting the store.",
     };
   }
 }

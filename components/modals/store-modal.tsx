@@ -48,6 +48,7 @@ export const StoreModal = () => {
       // hard reload in case the modal is stuck open
       // window.location.assign(`/${response.data.id}`);
       router.push(`/${response.data.id}`);
+      form.reset()
       onClose();
     } catch {
       toast.error("Something went wrong!");

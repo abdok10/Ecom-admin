@@ -18,7 +18,19 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { updateStore } from "@actions/store";
+import { deleteStore, updateStore } from "@actions/store";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useParams } from "next/navigation";
 
 interface SettingsFormProps {
   initialData: {
@@ -37,8 +49,12 @@ const formSchema = z.object({
 type SettingsFormValues = z.infer<typeof formSchema>;
 
 const SettingsForm = ({ initialData }: SettingsFormProps) => {
-  const [open, setOpen] = useState<boolean>(false);
-  const [isPending, startTransition] = useTransition();
+  const params = useParams();
+  // const [open, setOpen] = useState<boolean>(false);
+  const [showDeleteAlert, setShowDeleteAlert] = useState<boolean>(false);
+
+  const [isUpdating, startUpdateTransition] = useTransition();
+  const [isDeleting, startDeleteTransition] = useTransition();
 
   const form = useForm<SettingsFormValues>({
     resolver: zodResolver(formSchema),
@@ -46,40 +62,79 @@ const SettingsForm = ({ initialData }: SettingsFormProps) => {
   });
 
   const onSubmit = async (data: SettingsFormValues) => {
-    startTransition(async () => {
-      // Create FormData instance
+    startUpdateTransition(async () => {
       const formData = new FormData();
       formData.append("name", data.name);
 
-      const result = await updateStore(initialData.id, formData);
+      const result = await updateStore(params.storeId as string, formData);
 
       if (result.error) {
         toast.error(result.error);
         return;
       }
 
-      if (result.message) {
-        toast.success(result.message);
+      if (result.success) {
+        toast.success(result.success);
+      }
+    });
+  };
+
+  const onDelete = async () => {
+    startDeleteTransition(async () => {
+      const result = await deleteStore(params.storeId as string);
+
+      if (result.error) {
+        toast.error(result.error);
+        setShowDeleteAlert(false);
+        return;
+      }
+
+      if (result.success) {
+        toast.success(result.success);
       }
     });
   };
 
   return (
     <>
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Settings</h2>
-          <p className="text-sm text-gray-600">Manage store preferences</p>
+      <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold">Settings</h2>
+            <p className="text-sm text-gray-600">Manage store preferences</p>
+          </div>
+          <AlertDialogTrigger asChild>
+            <Button
+              variant="destructive"
+              size="icon"
+              disabled={isDeleting || isUpdating}
+            >
+              <Trash className="size-4" />
+            </Button>
+          </AlertDialogTrigger>
         </div>
-        <Button
-          variant="destructive"
-          disabled={isPending}
-          size="icon"
-          onClick={() => setOpen(true)}
-        >
-          <Trash className="h-4 w-4" />
-        </Button>
-      </div>
+
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete your
+              store and remove all related data from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={onDelete}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <Separator className="my-4" />
 
       <Form {...form}>
@@ -93,7 +148,7 @@ const SettingsForm = ({ initialData }: SettingsFormProps) => {
                   <FormLabel>Store Name</FormLabel>
                   <FormControl>
                     <Input
-                      disabled={isPending}
+                      disabled={isUpdating}
                       placeholder="Store Name"
                       {...field}
                     />
@@ -103,7 +158,7 @@ const SettingsForm = ({ initialData }: SettingsFormProps) => {
               )}
             />
           </div>
-          <Button type="submit" disabled={isPending} className="ml-auto">
+          <Button type="submit" disabled={isUpdating} className="ml-auto">
             Save Changes
           </Button>
         </form>
