@@ -6,7 +6,13 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-hot-toast";
+import { useParams } from "next/navigation";
 
+import { deleteStore, updateStore } from "@actions/store";
+import { useOrigin } from "@hooks/use-origin";
+
+
+import { ApiAlert } from "@components/global/ApiAlert";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -18,7 +24,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { deleteStore, updateStore } from "@actions/store";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,7 +35,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useParams } from "next/navigation";
 
 interface SettingsFormProps {
   initialData: {
@@ -49,8 +53,8 @@ const formSchema = z.object({
 type SettingsFormValues = z.infer<typeof formSchema>;
 
 const SettingsForm = ({ initialData }: SettingsFormProps) => {
+  const origin = useOrigin();
   const params = useParams();
-  // const [open, setOpen] = useState<boolean>(false);
   const [showDeleteAlert, setShowDeleteAlert] = useState<boolean>(false);
 
   const [isUpdating, startUpdateTransition] = useTransition();
@@ -163,6 +167,14 @@ const SettingsForm = ({ initialData }: SettingsFormProps) => {
           </Button>
         </form>
       </Form>
+
+      <Separator className="my-4" />
+
+        <ApiAlert 
+          title="NEXT_PUBLIC_API_URL" 
+          description={`${origin}/api/${params.storeId}`} 
+          variant="public"
+        />
     </>
   );
 };

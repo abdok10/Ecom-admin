@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 
 import db from "@lib/db";
 
-//TODO - make it better 
+//TODO - make it better
 export const createStore = async (values: { name: string }) => {
   try {
     const { userId } = await auth();
@@ -96,6 +96,8 @@ export async function updateStore(storeId: string, formData: FormData) {
     if (error instanceof ApiError) {
       return {
         error: error.message,
+        // status: error.statusCode,
+        // code: error.code,
       };
     }
 
@@ -109,7 +111,7 @@ export async function deleteStore(storeId: string) {
   try {
     const { userId } = auth();
     if (!userId) return { error: "Unauthorized" };
-    
+
     if (!storeId) return { error: "Store id is required" };
 
     await db.store.delete({
@@ -119,7 +121,7 @@ export async function deleteStore(storeId: string) {
       },
     });
 
-    revalidatePath(`/${storeId}/settings`);
+    revalidatePath(`/`);
     return {
       success: "Store deleted successfully",
     };
