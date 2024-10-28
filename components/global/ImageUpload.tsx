@@ -4,8 +4,7 @@ import { useState, useEffect } from "react";
 import { ImagePlus, X } from "lucide-react";
 import Image from "next/image";
 import { CldUploadWidget } from "next-cloudinary";
-
-import { Button } from "@components/ui/button";
+import { Button } from "@/components/ui/button";
 
 interface ImageUploadProps {
   disabled?: boolean;
@@ -27,27 +26,27 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   }, []);
 
   const onUpload = (result: any) => {
-    onChange(result.info.secure_url);
-  };
+    onChange(result?.info?.secure_url);
+  };    
 
   if (!isMounted) {
     return null;
   }
 
   return (
-    <div>
-      <div className="mb-4 flex items-center gap-4">
+    <div className="mb-4 flex flex-col gap-4">
+      <div className="flex items-center gap-4">
         {value.map((url) => (
           <div
             key={url}
             className="relative size-[200px] rounded-md overflow-hidden"
           >
-            <div className="z-10 absolute top-2 right-2">
+            <div className="absolute top-2 right-2 z-10">
               <Button
                 type="button"
+                onClick={() => onRemove(url)}
                 variant="destructive"
                 size="icon"
-                onClick={() => onRemove(url)}
               >
                 <X className="size-4" />
               </Button>
@@ -56,7 +55,10 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
           </div>
         ))}
       </div>
-      <CldUploadWidget onUpload={onUpload} uploadPreset="fsponzwn">
+      <CldUploadWidget
+        onSuccess={(result) => onUpload(result)}
+        uploadPreset="fsponzwn"
+      >
         {({ open }) => {
           const onClick = () => {
             open();
@@ -68,8 +70,8 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
               variant="secondary"
               onClick={onClick}
             >
-              <ImagePlus className="mr-2 size-4" />
-              Upload an image
+              <ImagePlus className="size-4 mr-2" />
+              Upload an Image
             </Button>
           );
         }}
@@ -77,4 +79,5 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     </div>
   );
 };
+
 export default ImageUpload;
