@@ -11,7 +11,7 @@ interface BillboardsPageProps {
 const BillboardsPage = async ({ params }: BillboardsPageProps) => {
   const billboards = await getBillboards(params.storeId);
 
-  const formattedBillboards: BillboardColumn[] = billboards.data.map(
+  const formattedBillboards: BillboardColumn[] = billboards?.data?.map(
     (item) => ({
       id: item.id,
       label: item.label,
