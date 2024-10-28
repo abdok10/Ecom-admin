@@ -1,37 +1,27 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Plus } from "lucide-react";
 
-import { getBillboardsCount } from "@actions/billboard";
 import Heading from "@components/global/Heading";
 import { Button } from "@components/ui/button";
 import { Separator } from "@components/ui/separator";
-import toast from "react-hot-toast";
+import { BillboardColumn, columns } from "./columns";
+import { DataTable } from "@components/global/DataTable";
 
-const BillboardClient = () => {
-  const [billboardsCount, setBillboardsCount] = useState(0);
+interface BillbordClientProps {
+  billboards: BillboardColumn[];
+}
+
+const BillboardClient = ({ billboards }: BillbordClientProps) => {
   const router = useRouter();
   const params = useParams();
-
-  useEffect(() => {
-    const fetchBillboardsCount = async () => {
-      const count = await getBillboardsCount(params.storeId as string);
-      if (count.error) {
-        toast.error(count.error);
-        return;
-      } 
-      setBillboardsCount(count?.data || 0);
-    };
-    fetchBillboardsCount();
-  }, []);
 
   return (
     <>
       <div className="flex items-center justify-between">
         <Heading
-          title={`Billboards (${billboardsCount})`}
+          title={`Billboards (${billboards.length})`}
           description="Manage billboards for your store"
         />
         <Button
@@ -42,6 +32,8 @@ const BillboardClient = () => {
         </Button>
       </div>
       <Separator className="my-4" />
+
+      <DataTable searchKey="label" columns={columns} data={billboards} />
     </>
   );
 };

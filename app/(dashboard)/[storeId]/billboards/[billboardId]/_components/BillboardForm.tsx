@@ -108,7 +108,6 @@ const BillboardForm = ({ initialData }: BillboardFormProps) => {
         }
 
         toast.success("Billboard deleted");
-        // router.refresh();
         router.push(`/dashboard/${params.storeId}/billboards`);
       } catch (error) {
         toast.error("Something went wrong");

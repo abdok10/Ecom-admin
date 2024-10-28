@@ -178,32 +178,15 @@ export async function getBillboards(storeId: string) {
 
     const billboards = await db.billboard.findMany({
       where: { storeId },
+      orderBy: {
+        createdAt: "desc",
+      },
     });
 
     return { success: true, data: billboards };
 
   } catch (error) {
     console.error('[GET_BILLBOARDS_ERROR]', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : "Something went wrong" 
-    };
-  }
-}
-export async function getBillboardsCount(storeId: string) {
-  try {
-    if (!storeId) {
-      return { error: "Store ID is required" };
-    }
-
-    const count = await db.billboard.count({
-      where: { storeId },
-    });
-
-    return { success: true, data: count };
-
-  } catch (error) {
-    console.error('[GET_BILLBOARDS_COUNT_ERROR]', error);
     return { 
       success: false, 
       error: error instanceof Error ? error.message : "Something went wrong" 
