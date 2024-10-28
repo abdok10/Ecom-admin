@@ -33,10 +33,10 @@ model Store {
 
 model Billboard {
   id        String      @id @default(cuid())
-  storeId   String
   label     String
   imageUrl  String
 
+  storeId   String
   store     Store       @relation("StoreBillboard", fields: [storeId], references: [id])
 
   createdAt DateTime @default(now())
@@ -44,3 +44,4 @@ model Billboard {
 
   @@index([storeId])
 }
+

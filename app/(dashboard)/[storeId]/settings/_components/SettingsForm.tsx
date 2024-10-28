@@ -7,10 +7,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-hot-toast";
 import { useParams } from "next/navigation";
+import { Store } from "@prisma/client";
 
 import { deleteStore, updateStore } from "@actions/store";
 import { useOrigin } from "@hooks/use-origin";
-
 
 import { ApiAlert } from "@components/global/ApiAlert";
 import { Button } from "@/components/ui/button";
@@ -37,10 +37,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 interface SettingsFormProps {
-  initialData: {
-    id: string;
-    name: string;
-  };
+  initialData: Store;
 }
 
 const formSchema = z.object({
