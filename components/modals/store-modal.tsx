@@ -86,9 +86,10 @@ export const StoreModal = () => {
             />
             <div className="pt-5 flex justify-end items-center gap-2">
               <Button
+              type="reset"
                 disabled={loading}
                 variant="outline"
-                onClick={() => onClose()}
+                onClick={onClose}
               >
                 Cancel
               </Button>

@@ -35,6 +35,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import DeleteAlert from "@components/global/DeleteAlert";
 
 interface SettingsFormProps {
   initialData: Store;
@@ -98,43 +99,27 @@ const SettingsForm = ({ initialData }: SettingsFormProps) => {
 
   return (
     <>
-      <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold">Settings</h2>
-            <p className="text-sm text-gray-600">Manage store preferences</p>
-          </div>
-          <AlertDialogTrigger asChild>
-            <Button
-              variant="destructive"
-              size="icon"
-              disabled={isDeleting || isUpdating}
-            >
-              <Trash className="size-4" />
-            </Button>
-          </AlertDialogTrigger>
-        </div>
-
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete your
-              store and remove all related data from our servers.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={onDelete}
-              disabled={isDeleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {isDeleting ? "Deleting..." : "Delete"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <div className="flex items-center justify-between">
+        <div>
+        <h2 className="text-2xl font-bold">Settings</h2>
+        <p className="text-sm text-gray-600">Manage store preferences</p>
+      </div>
+        <DeleteAlert
+          isPending={isUpdating || isDeleting}
+          onDelete={onDelete}
+          open={showDeleteAlert}
+          onOpenChange={setShowDeleteAlert}
+        >
+          <Button
+            variant="destructive"
+            size="icon"
+            disabled={isDeleting || isUpdating}
+          >
+            <Trash className="size-4" />
+          </Button>
+        </DeleteAlert>
+      </div>
+        
 
       <Separator className="my-4" />
 
@@ -167,11 +152,11 @@ const SettingsForm = ({ initialData }: SettingsFormProps) => {
 
       <Separator className="my-4" />
 
-        <ApiAlert 
-          title="NEXT_PUBLIC_API_URL" 
-          description={`${origin}/api/${params.storeId}`} 
-          variant="public"
-        />
+      <ApiAlert
+        title="NEXT_PUBLIC_API_URL"
+        description={`${origin}/api/${params.storeId}`}
+        variant="public"
+      />
     </>
   );
 };
