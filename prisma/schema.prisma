@@ -50,8 +50,7 @@ model Billboard {
 
 model Category {
   id        String      @id @default(cuid())
-  label      String
-  imageUrl   String
+  name      String
 
   storeId    String
   billboardId String
