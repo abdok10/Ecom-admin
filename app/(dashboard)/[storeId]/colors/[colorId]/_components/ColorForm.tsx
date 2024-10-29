@@ -30,7 +30,9 @@ import DeleteAlert from "@components/global/DeleteAlert";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  value: z.string().min(1, "Value is required"),
+  value: z.string().min(4, "Value is required").regex(/^#/, {
+    message: "String must be a valid hex code"
+  }),
 });
 
 interface ColorFormProps {
@@ -145,11 +147,17 @@ const ColorForm = ({ initialData }: ColorFormProps) => {
                 <FormItem>
                   <FormLabel>Value</FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      disabled={isPending}
-                      placeholder="Color value"
-                    />
+                    <div className="flex items-center gap-4">
+                      <Input
+                        {...field}
+                        disabled={isPending}
+                        placeholder="Color value"
+                        />
+                      <div 
+                        className="border p-4 rounded-full" 
+                        style={{ backgroundColor: field.value }}
+                        />
+                      </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
