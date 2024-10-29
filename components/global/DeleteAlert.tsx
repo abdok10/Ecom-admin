@@ -21,13 +21,6 @@ interface DeleteAlertProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-enum COMPONENT_TYPES {
-  "billboards",
-  "categories",
-  "orders",
-  "settings",
-}
-
 const DeleteAlert = ({
   children,
   isPending,
@@ -40,8 +33,9 @@ const DeleteAlert = ({
   const getComponentType = () => {
     if (pathname.includes("billboards")) return "billboard";
     if (pathname.includes("categories")) return "category";
+    if (pathname.includes("sizes")) return "size";
+    if (pathname.includes("colors")) return "color";
     if (pathname.includes("products")) return "product";
-    if (pathname.includes("orders")) return "order";
     return "item";
   };
 
