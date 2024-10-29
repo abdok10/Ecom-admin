@@ -1,4 +1,4 @@
-import { format } from "date-fns"
+import { format } from "date-fns";
 
 import { getBillboards } from "@actions/billboard";
 import BillboardClient from "./_components/BillboardClient";
@@ -17,12 +17,12 @@ const BillboardsPage = async ({ params }: BillboardsPageProps) => {
       label: item.label,
       createdAt: format(item.createdAt, "MMMM do, yyyy"),
     })
-  );
+  ) ?? [];
 
   return (
     <div className="flex-col">
       <div className="flex-1 gap-4 p-8 pt-6">
-        <BillboardClient billboards={formattedBillboards || []} />
+        <BillboardClient billboards={formattedBillboards} />
       </div>
     </div>
   );

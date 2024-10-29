@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "db:push": "pnpx prisma pnpx prisma db push",
+    "db:push": "pnpx prisma db push",
     "postinstall": "prisma generate"
   },
   "dependencies": {
