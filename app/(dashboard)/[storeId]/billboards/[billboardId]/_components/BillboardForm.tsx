@@ -9,7 +9,11 @@ import { toast } from "react-hot-toast";
 import { Billboard } from "@prisma/client";
 import { useParams, useRouter } from "next/navigation";
 
-import { createBillboard, updateBillboard, deleteBillboard } from "@/actions/billboard";
+import {
+  createBillboard,
+  updateBillboard,
+  deleteBillboard,
+} from "@/actions/billboard";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -34,6 +38,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import Heading from "@/components/global/Heading";
 import ImageUpload from "@/components/global/ImageUpload";
+import DeleteAlert from "@components/global/DeleteAlert";
 
 const formSchema = z.object({
   label: z.string().min(1, "Label is required"),
@@ -73,10 +78,7 @@ const BillboardForm = ({ initialData }: BillboardFormProps) => {
               params.storeId as string,
               data
             )
-          : await createBillboard(
-              params.storeId as string,
-              data
-            );
+          : await createBillboard(params.storeId as string, data);
 
         if (!result.success) {
           toast.error(result.error || "Something went wrong");
@@ -111,8 +113,6 @@ const BillboardForm = ({ initialData }: BillboardFormProps) => {
         router.push(`/${params.storeId}/billboards`);
       } catch (error) {
         toast.error("Something went wrong");
-      } finally {
-        setShowDeleteAlert(false);
       }
     });
   };
@@ -122,39 +122,11 @@ const BillboardForm = ({ initialData }: BillboardFormProps) => {
       <div className="flex items-center justify-between">
         <Heading title={title} description={description} />
         {initialData && (
-          <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="destructive"
-                size="icon"
-                disabled={isPending}
-              >
-                <Trash className="size-4" />
-              </Button>
-            </AlertDialogTrigger>
-
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete your
-                  billboard and remove all related data from our servers.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel disabled={isPending}>
-                  Cancel
-                </AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={onDelete}
-                  disabled={isPending}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                >
-                  {isPending ? "Deleting..." : "Delete"}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          <DeleteAlert isPending={isPending} onDelete={onDelete}>
+            <Button variant="destructive" size="icon" disabled={isPending}>
+              <Trash className="size-4" />
+            </Button>
+          </DeleteAlert>
         )}
       </div>
 

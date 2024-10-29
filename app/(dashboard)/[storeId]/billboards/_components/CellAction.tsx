@@ -26,6 +26,7 @@ import {
 import { useParams, useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { deleteBillboard } from "@actions/billboard";
+import DeleteAlert from "@components/global/DeleteAlert";
 
 interface CellActionProps {
   data: BillboardColumn;
@@ -56,10 +57,9 @@ const CellAction: React.FC<CellActionProps> = ({ data }) => {
 
         toast.success("Billboard deleted");
         router.push(`/${params.storeId}/billboards`);
+        setShowDeleteAlert(false);
       } catch (error) {
         toast.error("Something went wrong");
-      } finally {
-        setShowDeleteAlert(false);
       }
     });
   };
@@ -75,11 +75,16 @@ const CellAction: React.FC<CellActionProps> = ({ data }) => {
 
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-        <DropdownMenuItem onClick={() => onCopy(data.id)}>
+        <DropdownMenuItem
+          className="cursor-pointer"
+          onClick={() => onCopy(data.id)}
+        >
           <Copy className="size-4 mr-2" />
           Copy ID
         </DropdownMenuItem>
+
         <DropdownMenuItem
+          className="cursor-pointer"
           onClick={() =>
             router.push(`/${params.storeId}/billboards/${data.id}`)
           }
@@ -87,41 +92,21 @@ const CellAction: React.FC<CellActionProps> = ({ data }) => {
           <Edit className="size-4 mr-2" />
           Update
         </DropdownMenuItem>
-        <DropdownMenuItem 
-          onClick={(e) => {
-            e.preventDefault();
-            setShowDeleteAlert(true);
-          }}
-          onSelect={(e) => {
-            e.preventDefault();
-          }}
+
+        <DropdownMenuItem
+          className="cursor-pointer"
+          onClick={() => setShowDeleteAlert(true)}
+          onSelect={(e) => e.preventDefault()}
         >
           <Trash className="size-4 mr-2" />
           Delete
         </DropdownMenuItem>
-        <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete your
-                billboard and remove all related data from our servers.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={isDeleting}>
-                Cancel
-              </AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => onDelete(data.id)}
-                disabled={isDeleting}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
-                {isDeleting ? "Deleting..." : "Delete"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <DeleteAlert
+          isPending={isDeleting}
+          onDelete={() => onDelete(data.id)}
+          open={showDeleteAlert}
+          onOpenChange={setShowDeleteAlert}
+        />
       </DropdownMenuContent>
     </DropdownMenu>
   );
