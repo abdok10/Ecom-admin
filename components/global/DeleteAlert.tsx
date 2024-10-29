@@ -11,6 +11,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { usePathname } from "next/navigation";
 
 interface DeleteAlertProps {
   children?: React.ReactNode;
@@ -20,6 +21,13 @@ interface DeleteAlertProps {
   onOpenChange?: (open: boolean) => void;
 }
 
+enum COMPONENT_TYPES {
+  "billboards",
+  "categories",
+  "orders",
+  "settings",
+}
+
 const DeleteAlert = ({
   children,
   isPending,
@@ -27,6 +35,16 @@ const DeleteAlert = ({
   open,
   onOpenChange,
 }: DeleteAlertProps) => {
+  const pathname = usePathname();
+
+  const getComponentType = () => {
+    if (pathname.includes("billboards")) return "billboard";
+    if (pathname.includes("categories")) return "category";
+    if (pathname.includes("products")) return "product";
+    if (pathname.includes("orders")) return "order";
+    return "item";
+  };
+
   const handleDelete = async (e: React.MouseEvent) => {
     e.preventDefault();
     try {
@@ -43,8 +61,7 @@ const DeleteAlert = ({
         <AlertDialogHeader>
           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete your
-            billboard and remove all related data from our servers.
+            This action cannot be undone. This will permanently delete your {getComponentType()} and remove all related data from our servers.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
