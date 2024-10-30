@@ -1,19 +1,15 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { Trash } from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-hot-toast";
-import { Billboard } from "@prisma/client";
+import { Image, Product } from "@prisma/client";
 import { useParams, useRouter } from "next/navigation";
 
-import {
-  createBillboard,
-  updateBillboard,
-  deleteBillboard,
-} from "@/actions/billboard";
+import { createProduct, updateProduct, deleteProduct } from "@/actions/product";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -30,52 +26,74 @@ import ImageUpload from "@/components/global/ImageUpload";
 import DeleteAlert from "@components/global/DeleteAlert";
 
 const formSchema = z.object({
-  label: z.string().min(1, "Label is required"),
-  imageUrl: z.string().min(1, "Image URL is required"),
+  name: z.string().min(1, "Name is required"),
+  price: z.coerce.number().min(1),
+  images: z
+    .object({
+      url: z.string().url("Invalid image URL"),
+    })
+    .array()
+    .min(1, "At least one product image is required"),
+  categoryId: z.string().min(1, "Category is required"),
+  sizeId: z.string().min(1, "Size is required"),
+  colorId: z.string().min(1, "Color is required"),
+  isFeatured: z.boolean().default(false).optional(),
+  isArchived: z.boolean().default(false).optional(),
 });
 
-interface BillboardFormProps {
-  initialData: Billboard | null;
+interface ProductFormProps {
+  initialData:
+    | (Product & {
+        images: Image[];
+      })
+    | null;
 }
 
-type BillboardFormValues = z.infer<typeof formSchema>;
+type ProductFormValues = z.infer<typeof formSchema>;
 
-const BillboardForm = ({ initialData }: BillboardFormProps) => {
+const ProductForm = ({ initialData }: ProductFormProps) => {
   const params = useParams();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  const title = initialData ? "Edit Billboard" : "Create Billboard";
-  const description = initialData ? "Edit a Billboard" : "Add a new Billboard";
+  const title = initialData ? "Edit Product" : "Create Product";
+  const description = initialData ? "Edit a Product" : "Add a new Product";
   const action = initialData ? "Save changes" : "Create";
 
-  const form = useForm<BillboardFormValues>({
+  const form = useForm<ProductFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: initialData || {
-      label: "",
-      imageUrl: "",
-    },
+    defaultValues: initialData
+      ? {
+          ...initialData,
+          price: parseFloat(String(initialData.price)),
+        }
+      : {
+          name: "",
+          price: 0,
+          images: [],
+          isFeatured: false,
+          isArchived: false,
+          categoryId: "",
+          sizeId: "",
+          colorId: "",
+        },
   });
 
-  const onSubmit = async (data: BillboardFormValues) => {
+  const onSubmit = async (data: ProductFormValues) => {
     startTransition(async () => {
       try {
         const result = initialData
-          ? await updateBillboard(
-              initialData.id,
-              params.storeId as string,
-              data
-            )
-          : await createBillboard(params.storeId as string, data);
+          ? await updateProduct(initialData.id, params.storeId as string, data)
+          : await createProduct(params.storeId as string, data);
 
         if (!result.success) {
           toast.error(result.error || "Something went wrong");
           return;
         }
 
-        toast.success(initialData ? "Billboard updated" : "Billboard created");
+        toast.success(initialData ? "Product updated" : "Product created");
         // router.refresh();
-        router.push(`/${params.storeId}/billboards`);
+        router.push(`/${params.storeId}/products`);
       } catch (error) {
         toast.error("Something went wrong");
       }
@@ -87,7 +105,7 @@ const BillboardForm = ({ initialData }: BillboardFormProps) => {
       try {
         if (!initialData) return;
 
-        const result = await deleteBillboard(
+        const result = await deleteProduct(
           initialData.id,
           params.storeId as string
         );
@@ -97,8 +115,8 @@ const BillboardForm = ({ initialData }: BillboardFormProps) => {
           return;
         }
 
-        toast.success("Billboard deleted");
-        router.push(`/${params.storeId}/billboards`);
+        toast.success("Product deleted");
+        router.push(`/${params.storeId}/products`);
       } catch (error) {
         toast.error("Something went wrong");
       }
@@ -124,16 +142,22 @@ const BillboardForm = ({ initialData }: BillboardFormProps) => {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <FormField
             control={form.control}
-            name="imageUrl"
+            name="images"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Background image</FormLabel>
+                <FormLabel>Images</FormLabel>
                 <FormControl>
                   <ImageUpload
-                    value={field.value ? [field.value] : []}
+                    value={field.value.map((image) => image.url)}
                     disabled={isPending}
-                    onChange={(url) => field.onChange(url)}
-                    onRemove={() => field.onChange("")}
+                    // onChange={(url) => {
+                    //   field.onChange([...field.value, { url }]);
+                    // }}
+                    onRemove={(url) =>
+                      field.onChange([
+                        ...field.value.filter((current) => current.url !== url),
+                      ])
+                    }
                   />
                 </FormControl>
                 <FormMessage />
@@ -143,7 +167,7 @@ const BillboardForm = ({ initialData }: BillboardFormProps) => {
           <div className="grid grid-cols-3 gap-8">
             <FormField
               control={form.control}
-              name="label"
+              name="name"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Label</FormLabel>
@@ -151,7 +175,7 @@ const BillboardForm = ({ initialData }: BillboardFormProps) => {
                     <Input
                       {...field}
                       disabled={isPending}
-                      placeholder="Billboard label"
+                      placeholder="Procut Name"
                     />
                   </FormControl>
                   <FormMessage />
@@ -170,4 +194,4 @@ const BillboardForm = ({ initialData }: BillboardFormProps) => {
   );
 };
 
-export default BillboardForm;
+export default ProductForm;

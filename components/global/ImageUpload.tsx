@@ -27,15 +27,17 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 
   const onUpload = (result: any) => {
     onChange(result?.info?.secure_url);
-  };    
+  };
 
   if (!isMounted) {
     return null;
   }
 
+  console.log({ value });
+
   return (
     <div className="mb-4 flex flex-col gap-4">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 flex-wrap">
         {value.map((url) => (
           <div
             key={url}
@@ -51,7 +53,13 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
                 <X className="size-4" />
               </Button>
             </div>
-            <Image fill className="object-cover" alt="Image" src={url} />
+            <Image
+              fill
+              className="object-cover"
+              alt="Image"
+              src={url}
+              sizes="(max-width: 200px) 100vw, 200px"
+            />
           </div>
         ))}
       </div>
