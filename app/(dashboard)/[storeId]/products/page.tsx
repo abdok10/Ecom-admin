@@ -1,9 +1,9 @@
 import { format } from "date-fns";
 
+import { formatPrice } from "@/lib/utils";
 import { getProducts } from "@actions/product";
 import ProductClient from "./_components/ProductClient";
 import { ProductColumn } from "./_components/columns";
-import { formatPrice } from "@/lib/utils";
 
 interface ProductsPageProps {
   params: { storeId: string };
