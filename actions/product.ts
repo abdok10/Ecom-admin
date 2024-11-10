@@ -1,29 +1,29 @@
-'use server';
+"use server";
 
 import db from "@lib/db";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-const BillboardSchema = z.object({
+const ProductSchema = z.object({
   label: z.string().min(1, "Label is required"),
   imageUrl: z.string().min(1, "Image URL is required"),
 });
 
-type BillboardFormData = z.infer<typeof BillboardSchema>;
+type ProductFormData = z.infer<typeof ProductSchema>;
 
 // Helper function to verify store ownership
-async function verifyStoreAccess(storeId: string, userId: string): Promise<boolean> {
+async function verifyStoreAccess(
+  storeId: string,
+  userId: string
+): Promise<boolean> {
   const storeByUserId = await db.store.findFirst({
     where: { id: storeId, userId },
   });
   return !!storeByUserId;
 }
 
-export async function createBillboard(
-  storeId: string,
-  data: BillboardFormData
-) {
+export async function createProduct(storeId: string, data: ProductFormData) {
   try {
     const { userId } = auth();
     if (!userId) {
@@ -35,7 +35,7 @@ export async function createBillboard(
     }
 
     // Validate input data
-    const validationResult = BillboardSchema.safeParse(data);
+    const validationResult = ProductSchema.safeParse(data);
     if (!validationResult.success) {
       return { error: validationResult.error.errors[0].message };
     }
@@ -46,29 +46,28 @@ export async function createBillboard(
       return { error: "Unauthorized" };
     }
 
-    const billboard = await db.billboard.create({
+    const product = await db.product.create({
       data: {
         ...validationResult.data,
         storeId,
       },
     });
 
-    revalidatePath(`/dashboard/${storeId}/billboards`);
-    return { success: true, data: billboard };
-
+    revalidatePath(`/dashboard/${storeId}/products`);
+    return { success: true, data: product };
   } catch (error) {
-    console.error('[CREATE_BILLBOARD_ERROR]', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : "Something went wrong" 
+    console.error("[CREATE_PRODUCT_ERROR]", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Something went wrong",
     };
   }
 }
 
-export async function updateBillboard(
-  billboardId: string,
+export async function updateProduct(
+  productId: string,
   storeId: string,
-  data: BillboardFormData
+  data: ProductFormData
 ) {
   try {
     const { userId } = auth();
@@ -76,12 +75,12 @@ export async function updateBillboard(
       return { error: "Unauthenticated" };
     }
 
-    if (!billboardId) {
-      return { error: "Billboard ID is required" };
+    if (!productId) {
+      return { error: "Product ID is required" };
     }
 
     // Validate input data
-    const validationResult = BillboardSchema.safeParse(data);
+    const validationResult = ProductSchema.safeParse(data);
     if (!validationResult.success) {
       return { error: validationResult.error.errors[0].message };
     }
@@ -92,35 +91,31 @@ export async function updateBillboard(
       return { error: "Unauthorized" };
     }
 
-    const billboard = await db.billboard.update({
-      where: { id: billboardId },
+    const product = await db.product.update({
+      where: { id: productId },
       data: validationResult.data,
     });
 
-    revalidatePath(`/dashboard/${storeId}/billboards`);
-    return { success: true, data: billboard };
-
+    revalidatePath(`/dashboard/${storeId}/products`);
+    return { success: true, data: product };
   } catch (error) {
-    console.error('[UPDATE_BILLBOARD_ERROR]', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : "Something went wrong" 
+    console.error("[UPDATE_PRODUCT_ERROR]", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Something went wrong",
     };
   }
 }
 
-export async function deleteBillboard(
-  billboardId: string,
-  storeId: string,
-) {
+export async function deleteProduct(productId: string, storeId: string) {
   try {
     const { userId } = auth();
     if (!userId) {
       return { error: "Unauthenticated" };
     }
 
-    if (!billboardId) {
-      return { error: "Billboard ID is required" };
+    if (!productId) {
+      return { error: "Product ID is required" };
     }
 
     // Verify store ownership
@@ -129,43 +124,41 @@ export async function deleteBillboard(
       return { error: "Unauthorized" };
     }
 
-    await db.billboard.delete({
-      where: { id: billboardId },
+    await db.product.delete({
+      where: { id: productId },
     });
 
-    revalidatePath(`/dashboard/${storeId}/billboards`);
+    revalidatePath(`/dashboard/${storeId}/products`);
     return { success: true };
-
   } catch (error) {
-    console.error('[DELETE_BILLBOARD_ERROR]', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : "Something went wrong" 
+    console.error("[DELETE_PRODUCT_ERROR]", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Something went wrong",
     };
   }
 }
 
-export async function getBillboard(billboardId: string) {
+export async function getProduct(productId: string) {
   try {
-    if (!billboardId) {
-      return { error: "Billboard ID is required" };
+    if (!productId) {
+      return { error: "Product ID is required" };
     }
 
-    const billboard = await db.billboard.findUnique({
-      where: { id: billboardId },
+    const product = await db.product.findUnique({
+      where: { id: productId },
     });
 
-    if (!billboard) {
-      return { error: "Billboard not found" };
+    if (!product) {
+      return { error: "Product not found" };
     }
 
-    return { success: true, data: billboard };
-
+    return { success: true, data: product };
   } catch (error) {
-    console.error('[GET_BILLBOARD_ERROR]', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : "Something went wrong" 
+    console.error("[GET_PRODUCT_ERROR]", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Something went wrong",
     };
   }
 }
@@ -189,12 +182,11 @@ export async function getProducts(storeId: string) {
     });
 
     return { success: true, data: products };
-
   } catch (error) {
-    console.error('[GET_PRODUCTS_ERROR]', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : "Something went wrong" 
+    console.error("[GET_PRODUCTS_ERROR]", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Something went wrong",
     };
   }
 }
