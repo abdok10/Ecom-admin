@@ -1,6 +1,7 @@
 import db from "@lib/db";
 
 import ProductForm from "./_components/ProductForm";
+import { getProduct } from "@actions/product";
 
 const ProductPage = async ({
   params,
@@ -10,14 +11,7 @@ const ProductPage = async ({
     storeId: string;
   };
 }) => {
-  const product = await db.product.findUnique({
-    where: {
-      id: params.productId,
-    },
-    include: {
-      images: true,
-    },
-  });
+  const product = await getProduct(params.productId);
 
   const categories = await db.category.findMany({
     where: {
@@ -39,7 +33,7 @@ const ProductPage = async ({
     <div className="flex-col">
       <div className="flex-1 gap-4 p-8 pt-6">
         <ProductForm
-          initialData={product}
+          initialData={product.data ?? null}
           categories={categories}
           sizes={sizes}
           colors={colors}

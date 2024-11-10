@@ -6,8 +6,19 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 const ProductSchema = z.object({
-  label: z.string().min(1, "Label is required"),
-  imageUrl: z.string().min(1, "Image URL is required"),
+  name: z.string().min(1, "Name is required"),
+  price: z.coerce.number().min(1),
+  images: z
+    .object({
+      url: z.string().url("Invalid image URL"),
+    })
+    .array()
+    .min(1, "At least one product image is required"),
+  categoryId: z.string().min(1, "Category is required"),
+  sizeId: z.string().min(1, "Size is required"),
+  colorId: z.string().min(1, "Color is required"),
+  isFeatured: z.boolean().default(false).optional(),
+  isArchived: z.boolean().default(false).optional(),
 });
 
 type ProductFormData = z.infer<typeof ProductSchema>;
@@ -24,15 +35,20 @@ async function verifyStoreAccess(
 }
 
 export async function createProduct(storeId: string, data: ProductFormData) {
+  const {
+    name,
+    price,
+    images,
+    categoryId,
+    sizeId,
+    colorId,
+    isFeatured,
+    isArchived,
+  } = data;
   try {
     const { userId } = auth();
-    if (!userId) {
-      return { error: "Unauthenticated" };
-    }
-
-    if (!storeId) {
-      return { error: "Store ID is required" };
-    }
+    if (!userId) return { error: "Unauthenticated" };
+    if (!storeId) return { error: "Store ID is required" };
 
     // Validate input data
     const validationResult = ProductSchema.safeParse(data);
@@ -42,14 +58,23 @@ export async function createProduct(storeId: string, data: ProductFormData) {
 
     // Verify store ownership
     const hasAccess = await verifyStoreAccess(storeId, userId);
-    if (!hasAccess) {
-      return { error: "Unauthorized" };
-    }
+    if (!hasAccess) return { error: "Unauthorized" };
 
     const product = await db.product.create({
       data: {
-        ...validationResult.data,
+        name,
+        price: Number(price),
+        categoryId,
+        sizeId,
+        colorId,
+        isFeatured,
+        isArchived,
         storeId,
+        images: {
+          createMany: {
+            data: [...images.map((image: { url: string }) => image)],
+          },
+        },
       },
     });
 
@@ -71,29 +96,55 @@ export async function updateProduct(
 ) {
   try {
     const { userId } = auth();
-    if (!userId) {
-      return { error: "Unauthenticated" };
-    }
-
-    if (!productId) {
-      return { error: "Product ID is required" };
-    }
+    if (!userId) return { error: "Unauthenticated" };
+    if (!productId) return { error: "Product ID is required" };
 
     // Validate input data
     const validationResult = ProductSchema.safeParse(data);
     if (!validationResult.success) {
       return { error: validationResult.error.errors[0].message };
     }
+    const {
+      name,
+      price,
+      images,
+      categoryId,
+      sizeId,
+      colorId,
+      isFeatured,
+      isArchived,
+    } = validationResult.data;
 
     // Verify store ownership
     const hasAccess = await verifyStoreAccess(storeId, userId);
-    if (!hasAccess) {
-      return { error: "Unauthorized" };
-    }
+    if (!hasAccess) return { error: "Unauthorized" };
+
+    await db.product.update({
+      where: { id: productId },
+      data: {
+        name,
+        price: Number(price),
+        categoryId,
+        sizeId,
+        colorId,
+        isFeatured,
+        isArchived,
+        storeId,
+        images: {
+          deleteMany: {},
+        },
+      },
+    });
 
     const product = await db.product.update({
       where: { id: productId },
-      data: validationResult.data,
+      data: {
+        images: {
+          createMany: {
+            data: [...images.map((image: { url: string }) => image)],
+          },
+        },
+      },
     });
 
     revalidatePath(`/dashboard/${storeId}/products`);
@@ -110,19 +161,12 @@ export async function updateProduct(
 export async function deleteProduct(productId: string, storeId: string) {
   try {
     const { userId } = auth();
-    if (!userId) {
-      return { error: "Unauthenticated" };
-    }
-
-    if (!productId) {
-      return { error: "Product ID is required" };
-    }
+    if (!userId) return { error: "Unauthenticated" };
+    if (!productId) return { error: "Product ID is required" };
 
     // Verify store ownership
     const hasAccess = await verifyStoreAccess(storeId, userId);
-    if (!hasAccess) {
-      return { error: "Unauthorized" };
-    }
+    if (!hasAccess) return { error: "Unauthorized" };
 
     await db.product.delete({
       where: { id: productId },
@@ -141,17 +185,16 @@ export async function deleteProduct(productId: string, storeId: string) {
 
 export async function getProduct(productId: string) {
   try {
-    if (!productId) {
-      return { error: "Product ID is required" };
-    }
+    if (!productId) return { error: "Product ID is required" };
 
     const product = await db.product.findUnique({
       where: { id: productId },
+      include: {
+        images: true,
+      },
     });
 
-    if (!product) {
-      return { error: "Product not found" };
-    }
+    if (!product) return { error: "Product not found" };
 
     return { success: true, data: product };
   } catch (error) {
