@@ -100,7 +100,7 @@ model Product {
   isArchived    Boolean     @default(false)
   storeId       String
   categoryId    String
-  sizeId        String
+  sizeId        String   
   colorId       String
   images        Image[]
   orderItems    OrderItem[]
