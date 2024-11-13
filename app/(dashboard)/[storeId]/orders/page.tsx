@@ -1,6 +1,5 @@
 import { format } from "date-fns";
 
-// import { getOrders } from "@actions/order";
 import db from "@lib/db";
 import OrderClient from "./_components/OrderClient";
 import { OrderColumn } from "./_components/columns";
@@ -11,7 +10,6 @@ interface OrdersPageProps {
 }
 
 const OrdersPage = async ({ params }: OrdersPageProps) => {
-  // const orders = await getOrders(params.storeId);
   const orders = await db.order.findMany({
     where: { storeId: params.storeId },
     include: {
